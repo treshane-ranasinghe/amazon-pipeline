@@ -1,16 +1,15 @@
+"""
+
 import pandas as pd
 
-# ================================
-# Step 1: Extract
-# ================================
+
+
 
 # Load the full dataset
 input_file = "Amazon Sale Report.csv"  # make sure this file is in the same folder
 df = pd.read_csv(input_file)
 
-# ================================
-# Step 2: Transform and Split
-# ================================
+
 
 # --- 1. Sales Data (Transactional) ---
 sales_data = df[[
@@ -29,12 +28,9 @@ fulfilment_data = df[[
     "index", "Order ID", "Date", "Status", "Fulfilment", "Courier Status", "ship-service-level",
     "ship-city", "ship-state", "ship-postal-code", "ship-country"
 ]]
-# Optional: Convert Date
+# Convert Date
 fulfilment_data["Date"] = pd.to_datetime(fulfilment_data["Date"], errors='coerce')
 
-# ================================
-# Step 3: Load (Write to CSV)
-# ================================
 
 sales_data.to_csv("sales_data.csv", index=False)
 product_catalog.to_csv("product_catalog.csv", index=False)
@@ -44,3 +40,5 @@ print(" ETL Complete! Data split into:")
 print("   - sales_data.csv")
 print("   - product_catalog.csv")
 print("   - fulfilment_data.csv")
+
+"""
