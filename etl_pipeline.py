@@ -27,32 +27,73 @@ def extract_csv(file_path):
 # Step 2: Transform
 # ================================
 
+def standardize_column_names(df):
+    df.columns = (
+        df.columns.str.strip()
+        .str.lower()
+        .str.replace(" ", "_")
+        .str.replace("-", "_")
+    )
+    return df
+
 def clean_sales_data(df):
+    df = standardize_column_names(df)
+
     df = df[[
-        "index", "Order ID", "Date", "SKU", "ASIN", "Qty", "Amount", "B2B", "currency", "Sales Channel ", "fulfilled-by"
+        "order_id", "date", "sku", "asin", "qty", "amount", "b2b", "currency",
+        "sales_channel", "fulfilled_by"
     ]].copy()
-    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
-    df["Sales Channel "] = df["Sales Channel "].str.strip()
-    return df.dropna(subset=["Order ID", "SKU", "Date"])
+
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    df["sales_channel"] = df["sales_channel"].str.strip()
+
+    # FIXED: Convert b2b to string before filtering
+    df["b2b"] = df["b2b"].astype(str).str.upper()
+    df = df[df["b2b"] != "YES"]
+
+    # Derived metrics
+    df["total_revenue"] = df["qty"] * df["amount"]
+    df["is_high_value"] = df["total_revenue"] > 5000
+
+    return df.dropna(subset=["order_id", "sku", "date"])
+
 
 def clean_product_catalog(df):
+    df = standardize_column_names(df)
+
     df = df[[
-        "index", "SKU", "Style", "Category", "Size", "ASIN"
+        "sku", "style", "category", "size", "asin"
     ]].drop_duplicates().copy()
-    return df.dropna(subset=["SKU", "ASIN"])
+
+    df = df[df["category"].notna()]  # Business rule: remove rows with missing category
+    return df.dropna(subset=["sku", "asin"])
 
 def clean_fulfilment_data(df):
+    df = standardize_column_names(df)
+
     df = df[[
-        "index", "Order ID", "Date", "Status", "Fulfilment", "Courier Status", "ship-service-level",
-        "ship-city", "ship-state", "ship-postal-code", "ship-country"
+        "order_id", "date", "status", "fulfilment", "courier_status",
+        "ship_service_level", "ship_city", "ship_state", "ship_postal_code", "ship_country"
     ]].copy()
-    df["Date"] = pd.to_datetime(df["Date"], errors='coerce')
-    return df.dropna(subset=["Order ID", "Date", "Status"])
+
+    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+
+    # Business rule: map status values to consistent format
+    df["status"] = df["status"].str.lower().replace({
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "in transit": "In Transit"
+    })
+
+    return df.dropna(subset=["order_id", "date", "status"])
+
+# Optional: join sales and catalog on SKU
+def enrich_sales_with_catalog(sales_df, catalog_df):
+    return pd.merge(sales_df, catalog_df, on="sku", how="left")
 
 # ================================
 # Step 3: Load to PostgreSQL
 # ================================
-
 def load_to_postgresql(df, table_name, if_exists="replace"):
     engine = get_engine()
     df.to_sql(table_name, engine, index=False, if_exists=if_exists, method="multi")
@@ -61,7 +102,6 @@ def load_to_postgresql(df, table_name, if_exists="replace"):
 # ================================
 # Main ETL Pipeline
 # ================================
-
 def run_etl_pipeline():
     # --- Extract ---
     sales_raw = extract_csv("sales_data.csv")
@@ -73,12 +113,15 @@ def run_etl_pipeline():
     catalog_clean = clean_product_catalog(catalog_raw)
     fulfilment_clean = clean_fulfilment_data(fulfilment_raw)
 
+    # --- Business Rule: enrich sales with catalog data ---
+    sales_enriched = enrich_sales_with_catalog(sales_clean, catalog_clean)
+
     # --- Load ---
-    load_to_postgresql(sales_clean, "sales_data")
+    load_to_postgresql(sales_enriched, "sales_data")
     load_to_postgresql(catalog_clean, "product_catalog")
     load_to_postgresql(fulfilment_clean, "fulfilment_data")
 
-    print("\n🎉 ETL Pipeline completed successfully and data is in PostgreSQL!")
+    print("\n ETL Pipeline completed successfully and data is in PostgreSQL!")
 
 # Run the pipeline
 if __name__ == "__main__":
