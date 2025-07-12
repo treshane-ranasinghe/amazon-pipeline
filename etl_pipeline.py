@@ -103,12 +103,18 @@ def load_to_postgresql(df, table_name, if_exists="replace"):
 # Main ETL Pipeline
 
 def run_etl_pipeline():
-    # Extract 
-    sales_raw = extract_csv("sales_data.csv")
-    catalog_raw = extract_csv("product_catalog.csv")
-    fulfilment_raw = extract_csv("fulfilment_data.csv")
 
-    # Transform 
+    # Absolute file paths
+    sales_path = "/Users/treshaneranasinghe/Documents/amazon-pipeline/sales_data.csv"
+    catalog_path = "/Users/treshaneranasinghe/Documents/amazon-pipeline/product_catalog.csv"
+    fulfilment_path = "/Users/treshaneranasinghe/Documents/amazon-pipeline/fulfilment_data.csv"
+
+    # Extract using absolute paths
+    sales_raw = extract_csv(sales_path)
+    catalog_raw = extract_csv(catalog_path)
+    fulfilment_raw = extract_csv(fulfilment_path)
+
+    # Transform
     sales_clean = clean_sales_data(sales_raw)
     catalog_clean = clean_product_catalog(catalog_raw)
     fulfilment_clean = clean_fulfilment_data(fulfilment_raw)
@@ -116,12 +122,13 @@ def run_etl_pipeline():
     # Business Rule - enrich sales with catalog data
     sales_enriched = enrich_sales_with_catalog(sales_clean, catalog_clean)
 
-    #Load 
+    # Load
     load_to_postgresql(sales_enriched, "sales_data")
     load_to_postgresql(catalog_clean, "product_catalog")
     load_to_postgresql(fulfilment_clean, "fulfilment_data")
 
-    print("\n ETL Pipeline completed successfully and data is in PostgreSQL!")
+    print("\nETL Pipeline completed successfully and data is in PostgreSQL!")
+
 
 # Run the pipeline
 if __name__ == "__main__":

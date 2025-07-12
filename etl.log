@@ -1,0 +1,42 @@
+Traceback (most recent call last):
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/etl_pipeline.py", line 1, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
+Traceback (most recent call last):
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/etl_pipeline.py", line 128, in <module>
+    run_etl_pipeline()
+    ~~~~~~~~~~~~~~~~^^
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/etl_pipeline.py", line 107, in run_etl_pipeline
+    sales_raw = extract_csv("sales_data.csv")
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/etl_pipeline.py", line 24, in extract_csv
+    return pd.read_csv(file_path)
+           ~~~~~~~~~~~^^^^^^^^^^^
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+                   ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/venv/lib/python3.13/site-packages/pandas/io/parsers/readers.py", line 1880, in _make_engine
+    self.handles = get_handle(
+                   ~~~~~~~~~~^
+        f,
+        ^^
+    ...<6 lines>...
+        storage_options=self.options.get("storage_options", None),
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/treshaneranasinghe/Documents/amazon-pipeline/venv/lib/python3.13/site-packages/pandas/io/common.py", line 873, in get_handle
+    handle = open(
+        handle,
+    ...<3 lines>...
+        newline="",
+    )
+FileNotFoundError: [Errno 2] No such file or directory: 'sales_data.csv'
+ Loaded to PostgreSQL table: sales_data
+ Loaded to PostgreSQL table: product_catalog
+ Loaded to PostgreSQL table: fulfilment_data
+
+ETL Pipeline completed successfully and data is in PostgreSQL!
