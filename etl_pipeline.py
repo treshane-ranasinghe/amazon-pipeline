@@ -1,9 +1,9 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-# ================================
+
 # Database Configuration
-# ================================
+
 DB_CONFIG = {
     "user": "treshaneranasinghe",
     "password": "Dahami224466",
@@ -17,15 +17,15 @@ def get_engine():
     db_url = f"postgresql+psycopg2://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
     return create_engine(db_url)
 
-# ================================
-# Step 1: Extract
-# ================================
+
+#Extract
+
 def extract_csv(file_path):
     return pd.read_csv(file_path)
 
-# ================================
-# Step 2: Transform
-# ================================
+
+#Transform
+
 
 def standardize_column_names(df):
     df.columns = (
@@ -47,7 +47,7 @@ def clean_sales_data(df):
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df["sales_channel"] = df["sales_channel"].str.strip()
 
-    # FIXED: Convert b2b to string before filtering
+    # Convert b2b to string before filtering
     df["b2b"] = df["b2b"].astype(str).str.upper()
     df = df[df["b2b"] != "YES"]
 
@@ -87,36 +87,36 @@ def clean_fulfilment_data(df):
 
     return df.dropna(subset=["order_id", "date", "status"])
 
-# Optional: join sales and catalog on SKU
+# join sales and catalog on SKU
 def enrich_sales_with_catalog(sales_df, catalog_df):
     return pd.merge(sales_df, catalog_df, on="sku", how="left")
 
-# ================================
-# Step 3: Load to PostgreSQL
-# ================================
+
+#Load to PostgreSQL
+
 def load_to_postgresql(df, table_name, if_exists="replace"):
     engine = get_engine()
     df.to_sql(table_name, engine, index=False, if_exists=if_exists, method="multi")
-    print(f"✅ Loaded to PostgreSQL table: {table_name}")
+    print(f" Loaded to PostgreSQL table: {table_name}")
 
-# ================================
+
 # Main ETL Pipeline
-# ================================
+
 def run_etl_pipeline():
-    # --- Extract ---
+    # Extract 
     sales_raw = extract_csv("sales_data.csv")
     catalog_raw = extract_csv("product_catalog.csv")
     fulfilment_raw = extract_csv("fulfilment_data.csv")
 
-    # --- Transform ---
+    # Transform 
     sales_clean = clean_sales_data(sales_raw)
     catalog_clean = clean_product_catalog(catalog_raw)
     fulfilment_clean = clean_fulfilment_data(fulfilment_raw)
 
-    # --- Business Rule: enrich sales with catalog data ---
+    # Business Rule - enrich sales with catalog data
     sales_enriched = enrich_sales_with_catalog(sales_clean, catalog_clean)
 
-    # --- Load ---
+    #Load 
     load_to_postgresql(sales_enriched, "sales_data")
     load_to_postgresql(catalog_clean, "product_catalog")
     load_to_postgresql(fulfilment_clean, "fulfilment_data")

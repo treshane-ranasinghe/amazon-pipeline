@@ -1,10 +1,11 @@
+"""
+
 import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.engine import URL
 
-# ================================
-# CONFIGURATION
-# ================================
+
+
 DATABASE_CONFIG = {
     "drivername": "postgresql",
     "username": "treshaneranasinghe",
@@ -16,15 +17,11 @@ DATABASE_CONFIG = {
 
 PRODUCT_CATALOG_FILE = "product_catalog.csv"
 
-# ================================
-# EXTRACT FUNCTION
-# ================================
+
 def extract_csv(filepath):
     return pd.read_csv(filepath)
 
-# ================================
-# TRANSFORM FUNCTION
-# ================================
+
 def clean_product_catalog(df):
     if "index" in df.columns:
         df = df.drop(columns=["index"])  # Drop 'index' if present
@@ -36,9 +33,7 @@ def clean_product_catalog(df):
     df["Size"] = df["Size"].astype(str).str.strip()
     return df.dropna(subset=["SKU", "ASIN"])
 
-# ================================
-# LOAD FUNCTION
-# ================================
+
 def load_to_postgresql(df, table_name, if_exists="replace"):
     
     url = URL.create(**DATABASE_CONFIG)
@@ -47,9 +42,6 @@ def load_to_postgresql(df, table_name, if_exists="replace"):
         df.to_sql(table_name, con=connection, index=False, if_exists=if_exists)
         print(f"✔ Loaded '{table_name}' into PostgreSQL.")
 
-# ================================
-# MAIN ETL PIPELINE FOR PRODUCT CATALOG
-# ================================
 
 def run_product_catalog_etl():
     # Extract
@@ -67,8 +59,9 @@ def run_product_catalog_etl():
     print("🎉 Product catalog ETL completed successfully!")
 
 
-# ================================
-# RUN SCRIPT
-# ================================
 if __name__ == "__main__":
     run_product_catalog_etl()
+
+
+"""
+
