@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 
-# Database Configuration
+# Database Configurations
 
 DB_CONFIG = {
     "user": "treshaneranasinghe",
