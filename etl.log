@@ -40,3 +40,8 @@ FileNotFoundError: [Errno 2] No such file or directory: 'sales_data.csv'
  Loaded to PostgreSQL table: fulfilment_data
 
 ETL Pipeline completed successfully and data is in PostgreSQL!
+ Loaded to PostgreSQL table: sales_data
+ Loaded to PostgreSQL table: product_catalog
+ Loaded to PostgreSQL table: fulfilment_data
+
+ETL Pipeline completed successfully and data is in PostgreSQL!

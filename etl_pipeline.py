@@ -1,5 +1,5 @@
-import pandas as pd
-from sqlalchemy import create_engine
+import pandas as pd # for reading csv files and transforming data
+from sqlalchemy import create_engine # for connecting to postgresql
 
 
 # Database Configurations
@@ -12,7 +12,7 @@ DB_CONFIG = {
     "database": "amazon"
 }
 
-# Create SQLAlchemy engine
+# Create SQLAlchemy connection url
 def get_engine():
     db_url = f"postgresql+psycopg2://{DB_CONFIG['user']}:{DB_CONFIG['password']}@{DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}"
     return create_engine(db_url)
@@ -29,12 +29,14 @@ def extract_csv(file_path):
 
 def standardize_column_names(df):
     df.columns = (
-        df.columns.str.strip()
-        .str.lower()
-        .str.replace(" ", "_")
-        .str.replace("-", "_")
+        df.columns.str.strip() # Removes any leading/trailing spaces in column name
+        .str.lower()   # Converts all column names to lowercase
+        .str.replace(" ", "_") # Replaces spaces with underscores
+        .str.replace("-", "_") # Replaces dashes (-) with underscores
     )
     return df
+
+# cleaningo of the sales data
 
 def clean_sales_data(df):
     df = standardize_column_names(df)
@@ -58,6 +60,8 @@ def clean_sales_data(df):
     return df.dropna(subset=["order_id", "sku", "date"])
 
 
+# cleaning of product data
+
 def clean_product_catalog(df):
     df = standardize_column_names(df)
 
@@ -65,8 +69,10 @@ def clean_product_catalog(df):
         "sku", "style", "category", "size", "asin"
     ]].drop_duplicates().copy()
 
-    df = df[df["category"].notna()]  # Business rule: remove rows with missing category
+    df = df[df["category"].notna()]  # Business rule remove rows with missing category
     return df.dropna(subset=["sku", "asin"])
+
+# cleaning of fulfilment data
 
 def clean_fulfilment_data(df):
     df = standardize_column_names(df)
@@ -87,12 +93,12 @@ def clean_fulfilment_data(df):
 
     return df.dropna(subset=["order_id", "date", "status"])
 
-# join sales and catalog on SKU
+# Joins product info to each sales record using the sku
 def enrich_sales_with_catalog(sales_df, catalog_df):
     return pd.merge(sales_df, catalog_df, on="sku", how="left")
 
 
-#Load to PostgreSQL
+#sends each data frame to the relavant postgre table
 
 def load_to_postgresql(df, table_name, if_exists="replace"):
     engine = get_engine()
